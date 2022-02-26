@@ -6,7 +6,7 @@ This file creates your application.
 """
 import os
 from app import app
-from flask import render_template, request, redirect, url_for, flash, session, abort
+from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from werkzeug.utils import secure_filename
 from .forms import UploadForm
 
@@ -42,7 +42,7 @@ def upload():
             f = form.image.data
             filename = secure_filename(f.filename)
             f.save(
-                os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'], filename)
             )
             flash('File Saved', 'success')
             return redirect(url_for('home'))
@@ -51,6 +51,30 @@ def upload():
 
     return render_template('upload.html', form=form)
 
+@app.route('/uploads/<filename>', methods=['GET'])
+def get_image(filename):
+    if not session.get('logged_in'):
+        abort(401)
+    return send_from_directory(os.path.join(os.getcwd(), 
+    app.config['UPLOAD_FOLDER']), filename)
+
+@app.route('/files', methods=['GET'])
+def files():
+    if not session.get('logged_in'):
+        abort(401)
+    images = get_uploaded_images()
+    return render_template('files.html', images=images)
+
+
+def get_uploaded_images():
+    upload_dir = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+    file_list = []
+    for  subdir, dirs, files in os.walk(upload_dir):
+        for file in files:
+            if file.endswith(".jpeg") or file.endswith('.png') or file.endswith('.jpg'):
+             file_list.append(file)
+    print (file_list)
+    return file_list
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
