@@ -38,7 +38,7 @@ def upload():
     # Validate file upload on submit
     if request.method == 'POST':
         # Get file data and save to your uploads folder
-         if form.validate_on_submit():
+        if form.validate_on_submit():
             f = form.image.data
             filename = secure_filename(f.filename)
             f.save(
@@ -46,6 +46,8 @@ def upload():
             )
             flash('File Saved', 'success')
             return redirect(url_for('home'))
+        else:
+            print ("Upload not valid")
 
     return render_template('upload.html', form=form)
 
